@@ -123,9 +123,9 @@ Rclear_task(SEXP r_task)
 }
 
 static SEXP
-Rcreate_voltage_chan(SEXP r_task, SEXP r_phys_chan,
+Rcreate_voltage_chan(SEXP r_task, SEXP r_phys_chan, SEXP r_chan_name,
 		     SEXP r_terminal_config,
-		     SEXP r_minVal, SEXP r_maxVal, SEXP r_chan_name,
+		     SEXP r_minVal, SEXP r_maxVal, 
 		     SEXP r_units, SEXP r_custom_scale)
 {
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
@@ -173,18 +173,44 @@ Rcreate_voltage_chan(SEXP r_task, SEXP r_phys_chan,
 
 
 static SEXP
-Rconfig_sampl_clk_timing(SEXP r_task, SEXP r_rate, SEXP r_nsamples)
+Rconfig_sampl_clk_timing(SEXP r_task, SEXP r_source, SEXP r_rate,
+			 SEXP r_active_edge, SEXP r_sample_mode, SEXP r_nsamples)
 {
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
   double rate = REAL(AS_NUMERIC(r_rate))[0];
-  int nsamples = INTEGER(AS_INTEGER(r_nsamples))[0];
+  int32 active_edge;
+  if (Rf_isNull(r_active_edge))
+    {
+      active_edge = DAQmx_Val_Rising;
+    }
+  else
+    {
+      active_edge = INTEGER(AS_INTEGER(r_active_edge))[0];
+    }
+  
+  int32 sample_mode;
 
-  int32 ret = DAQmxCfgSampClkTiming(task,"", rate, DAQmx_Val_Rising,
-				    DAQmx_Val_FiniteSamps,nsamples);
+  if (Rf_isNull(r_sample_mode))
+    {
+      sample_mode = DAQmx_Val_FiniteSamps;
+    }
+  else
+    {
+      sample_mode = INTEGER(AS_INTEGER(r_sample_mode))[0];
+    }
+  
+  int nsamples = INTEGER(AS_INTEGER(r_nsamples))[0];
+  
+  PROTECT(r_source = AS_CHARACTER(r_source));
+  const char *source = CHAR(STRING_ELT(r_source, 0));
+  
+  int32 ret = DAQmxCfgSampClkTiming(task,source, rate, active_edge,
+				    sample_mode, nsamples);
 
   
   if (ret < 0)
     {
+      UNPROTECT(1);
       error("NIDAQmx error code: %d", ret);
     }
   else if (ret > 0)
@@ -192,6 +218,7 @@ Rconfig_sampl_clk_timing(SEXP r_task, SEXP r_rate, SEXP r_nsamples)
       warning("NIDAQmx warning code: %d", ret);
     }
 
+  UNPROTECT(1);
   return R_NilValue;
 
 }
