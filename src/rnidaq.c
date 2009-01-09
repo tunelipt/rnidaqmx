@@ -22,11 +22,11 @@ Rcreate_task(SEXP task_name)
   if (error_code < 0)
     {
       UNPROTECT(1);
-      error("NIDAQmx error code: %d", error_code);
+      error("%d: NIDAQmx error code.", error_code);
     }
   else if (error_code > 0)
     {
-      warning("NIDAQmx warning code: %d", error_code);
+      warning("%d: NIDAQmx warning code.", error_code);
     }
   
   SEXP tag;
@@ -51,11 +51,11 @@ Rstart_task(SEXP r_task)
 
   if (ret < 0)
     {
-      error("NIDAQmx error code: %d", ret);
+      error("%d: NIDAQmx error code.", ret);
     }
   else if (ret > 0)
     {
-      warning("NIDAQmx warning code: %d", ret);
+      warning("%d: NIDAQmx warning code.", ret);
     }
 
   return R_NilValue;
@@ -73,11 +73,11 @@ Radd_global_chans_to_task(SEXP r_task, SEXP r_chans)
   if (ret < 0)
     {
       UNPROTECT(1);
-      error("NIDAQmx error code: %d", ret);
+      error("%d: NIDAQmx error code.", ret);
     }
   else if (ret > 0)
     {
-      warning("NIDAQmx warning code: %d", ret);
+      warning("%d: NIDAQmx warning code.", ret);
     }
 
   UNPROTECT(1);
@@ -93,11 +93,11 @@ Rstop_task(SEXP r_task)
 
   if (ret < 0)
     {
-      error("NIDAQmx error code: %d", ret);
+      error("%d: NIDAQmx error code.", ret);
     }
   else if (ret > 0)
     {
-      warning("NIDAQmx warning code: %d", ret);
+      warning("%d: NIDAQmx warning code.", ret);
     }
 
   return R_NilValue;
@@ -112,11 +112,11 @@ Rclear_task(SEXP r_task)
 
   if (ret < 0)
     {
-      error("NIDAQmx error code: %d", ret);
+      error("%d: NIDAQmx error code.", ret);
     }
   else if (ret > 0)
     {
-      warning("NIDAQmx warning code: %d", ret);
+      warning("%d: NIDAQmx warning code.", ret);
     }
 
   return R_NilValue;
@@ -139,7 +139,7 @@ Rcreate_voltage_chan(SEXP r_task, SEXP r_phys_chan, SEXP r_chan_name,
   int32 units;
   char *null_string = "";
   char *scale;
-  
+  int num_protect = 2;
   if (Rf_isNull(r_units))
     {
       units = DAQmx_Val_Volts;
@@ -150,6 +150,7 @@ Rcreate_voltage_chan(SEXP r_task, SEXP r_phys_chan, SEXP r_chan_name,
       units = INTEGER(AS_INTEGER(r_units))[0];
       PROTECT(r_custom_scale = AS_CHARACTER(r_custom_scale));
       scale = CHAR(STRING_ELT(r_custom_scale, 0));
+      ++num_protect;
     }
   
   
@@ -159,15 +160,15 @@ Rcreate_voltage_chan(SEXP r_task, SEXP r_phys_chan, SEXP r_chan_name,
   
   if (ret < 0)
     {
-      UNPROTECT(3);
-      error("NIDAQmx error code: %d", ret);
+      UNPROTECT(num_protect);
+      error("%d: NIDAQmx error code.", ret);
     }
   else if (ret > 0)
     {
-      warning("NIDAQmx warning code: %d", ret);
+      warning("%d: NIDAQmx warning code.", ret);
     }
 
-  UNPROTECT(3);
+  UNPROTECT(num_protect);
   return R_NilValue;
 }
 
@@ -211,11 +212,11 @@ Rconfig_sampl_clk_timing(SEXP r_task, SEXP r_source, SEXP r_rate,
   if (ret < 0)
     {
       UNPROTECT(1);
-      error("NIDAQmx error code: %d", ret);
+      error("%d: NIDAQmx error code.", ret);
     }
   else if (ret > 0)
     {
-      warning("NIDAQmx warning code: %d", ret);
+      warning("%d: NIDAQmx warning code.", ret);
     }
 
   UNPROTECT(1);
@@ -236,11 +237,11 @@ Ris_finished(SEXP r_task)
 
   if (ret < 0)
     {
-      error("NIDAQmx error code: %d", ret);
+      error("%d: NIDAQmx error code.", ret);
     }
   else if (ret > 0)
     {
-      warning("NIDAQmx warning code: %d", ret);
+      warning("%d: NIDAQmx warning code.", ret);
     }
   SEXP ans;
   PROTECT(ans = NEW_LOGICAL(1));
@@ -249,6 +250,77 @@ Ris_finished(SEXP r_task)
   return ans;
 }
 
+static SEXP
+Rread_analog_f64(SEXP r_task, SEXP r_nsamples, SEXP r_timeout, SEXP r_fill_mode, SEXP r_num_chans)
+{
+  TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
+  int nsamples = -1;
+  if (!Rf_isNull(r_nsamples))
+    {
+      nsamples = INTEGER(AS_INTEGER(r_nsamples))[0];
+    }
+  double timeout = 10.0;
+  if (!Rf_isNull(r_timeout))
+    {
+      timeout = INTEGER(AS_INTEGER(r_timeout))[0];
+    }
+  bool32 fill_mode = DAQmx_Val_GroupByChannel;
+  
+  if (!Rf_isNull(r_fill_mode))
+    {
+      fill_mode = (bool32) LOGICAL(AS_LOGICAL(r_fill_mode))[0];
+    }
+  int num_chans = INTEGER(AS_INTEGER(r_num_chans))[0];
+  int32 array_size = num_chans * nsamples;
+
+  // Allocate the array
+  SEXP dados;
+
+  PROTECT(dados = NEW_NUMERIC(array_size));
+  int32 samples_read;
+  int32 ret = DAQmxReadAnalogF64(task, nsamples, timeout, fill_mode, REAL(dados), array_size, &samples_read, NULL);
+
+  if (ret < 0)
+    {
+      UNPROTECT(1);
+      error("%d: NIDAQmx error code.", ret);
+    }
+  else if (ret > 0)
+    {
+      warning("%d: NIDAQmx warning code.", ret);
+    }
+  UNPROTECT(1);
+  if (samples_read != nsamples)
+    {
+      error("Number of samples not what is expected");
+    }
+  return dados;
+  
+}
+
+static SEXP
+Rget_error_string(SEXP r_error_code)
+{
+  const int buff_len = 4096;
+  char buffer[buff_len];
+  
+  int32 error_code = INTEGER(AS_INTEGER(r_error_code))[0];
+
+  int32 ret = DAQmxGetErrorString(error_code, buffer, buff_len-1);
+  if (ret < 0)
+    {
+      error("%d: NIDAQmx error code.", ret);
+    }
+  else if (ret > 0)
+    {
+      warning("%d: NIDAQmx warning code.", ret);
+    }
+  SEXP msg;
+  PROTECT(msg = NEW_CHARACTER(1));
+  SET_STRING_ELT(msg, 0, mkChar(buffer));
+  UNPROTECT(1);
+  return msg;
+}
 
 R_CallMethodDef callMethods[] = {
   {"Rcreate_task", (DL_FUNC) &Rcreate_task, 1},
@@ -257,8 +329,10 @@ R_CallMethodDef callMethods[] = {
   {"Rstop_task", (DL_FUNC) &Rstop_task, 1},
   {"Radd_global_chans_to_task", (DL_FUNC) &Radd_global_chans_to_task, 2},
   {"Rcreate_voltage_chan", (DL_FUNC) &Rcreate_voltage_chan, 8},
-  {"Rconfig_sampl_clk_timing",(DL_FUNC)  &Rconfig_sampl_clk_timing, 3},
+  {"Rconfig_sampl_clk_timing",(DL_FUNC)  &Rconfig_sampl_clk_timing, 6},
   {"Ris_finished", (DL_FUNC) &Ris_finished, 1},
+  {"Rread_analog_f64", (DL_FUNC) &Rread_analog_f64, 5},
+  {"Rget_error_string", (DL_FUNC) &Rget_error_string, 1},
   {NULL, NULL, 0}
 };
 
