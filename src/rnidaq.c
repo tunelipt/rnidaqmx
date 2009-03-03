@@ -34,7 +34,7 @@ Rcreate_task(SEXP task_name)
   const char *tag_name = "NIDAQmxTask";
   SET_STRING_ELT(tag, 0, mkChar(tag_name));
   
-  SEXP task_ptr = R_MakeExternalPtr((void*) task, tag, NULL);
+  SEXP task_ptr = R_MakeExternalPtr((void*) task, tag, R_NilValue);
 
   UNPROTECT(2);
 
