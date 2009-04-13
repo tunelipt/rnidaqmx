@@ -12,7 +12,7 @@
 #include <R_ext/Rdynload.h>
 
 static SEXP
-Rcreate_task(SEXP task_name)
+Rnidaq_create_task(SEXP task_name)
 {
   PROTECT(task_name = coerceVector(task_name, STRSXP));
   const char *name = CHAR(STRING_ELT(task_name, 0));
@@ -43,7 +43,7 @@ Rcreate_task(SEXP task_name)
 
 
 static SEXP
-Rstart_task(SEXP r_task)
+Rnidaq_start_task(SEXP r_task)
 {
   
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
@@ -62,7 +62,7 @@ Rstart_task(SEXP r_task)
 }
 
 static SEXP
-Radd_global_chans_to_task(SEXP r_task, SEXP r_chans)
+Rnidaq_add_global_chans_to_task(SEXP r_task, SEXP r_chans)
 {
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
   PROTECT(r_chans = AS_CHARACTER(r_chans));
@@ -85,7 +85,7 @@ Radd_global_chans_to_task(SEXP r_task, SEXP r_chans)
 }
 
 static SEXP
-Rstop_task(SEXP r_task)
+Rnidaq_stop_task(SEXP r_task)
 {
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
 
@@ -104,7 +104,7 @@ Rstop_task(SEXP r_task)
 }
 
 static SEXP
-Rclear_task(SEXP r_task)
+Rnidaq_clear_task(SEXP r_task)
 {
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
 
@@ -123,10 +123,10 @@ Rclear_task(SEXP r_task)
 }
 
 static SEXP
-Rcreate_voltage_chan(SEXP r_task, SEXP r_phys_chan, SEXP r_chan_name,
-		     SEXP r_terminal_config,
-		     SEXP r_minVal, SEXP r_maxVal, 
-		     SEXP r_units, SEXP r_custom_scale)
+Rnidaq_create_voltage_chan(SEXP r_task, SEXP r_phys_chan, SEXP r_chan_name,
+			   SEXP r_terminal_config,
+			   SEXP r_minVal, SEXP r_maxVal, 
+			   SEXP r_units, SEXP r_custom_scale)
 {
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
   PROTECT(r_phys_chan = AS_CHARACTER(r_phys_chan));
@@ -174,8 +174,8 @@ Rcreate_voltage_chan(SEXP r_task, SEXP r_phys_chan, SEXP r_chan_name,
 
 
 static SEXP
-Rconfig_sampl_clk_timing(SEXP r_task, SEXP r_source, SEXP r_rate,
-			 SEXP r_active_edge, SEXP r_sample_mode, SEXP r_nsamples)
+Rnidaq_config_sampl_clk_timing(SEXP r_task, SEXP r_source, SEXP r_rate,
+			       SEXP r_active_edge, SEXP r_sample_mode, SEXP r_nsamples)
 {
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
   double rate = REAL(AS_NUMERIC(r_rate))[0];
@@ -227,7 +227,7 @@ Rconfig_sampl_clk_timing(SEXP r_task, SEXP r_source, SEXP r_rate,
 
 
 static SEXP
-Ris_finished(SEXP r_task)
+Rnidaq_is_finished(SEXP r_task)
 {
 
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
@@ -251,7 +251,7 @@ Ris_finished(SEXP r_task)
 }
 
 static SEXP
-Rread_analog_f64(SEXP r_task, SEXP r_nsamples, SEXP r_timeout, SEXP r_fill_mode, SEXP r_num_chans)
+Rnidaq_read_analog_f64(SEXP r_task, SEXP r_nsamples, SEXP r_timeout, SEXP r_fill_mode, SEXP r_num_chans)
 {
   TaskHandle task = (TaskHandle) R_ExternalPtrAddr(r_task);
   int nsamples = -1;
@@ -299,7 +299,7 @@ Rread_analog_f64(SEXP r_task, SEXP r_nsamples, SEXP r_timeout, SEXP r_fill_mode,
 }
 
 static SEXP
-Rget_error_string(SEXP r_error_code)
+Rnidaq_get_error_string(SEXP r_error_code)
 {
   const int buff_len = 4096;
   char buffer[buff_len];
@@ -323,16 +323,16 @@ Rget_error_string(SEXP r_error_code)
 }
 
 R_CallMethodDef callMethods[] = {
-  {"Rcreate_task", (DL_FUNC) &Rcreate_task, 1},
-  {"Rstart_task", (DL_FUNC) &Rstart_task, 1},
-  {"Rclear_task", (DL_FUNC) &Rclear_task, 1},
-  {"Rstop_task", (DL_FUNC) &Rstop_task, 1},
-  {"Radd_global_chans_to_task", (DL_FUNC) &Radd_global_chans_to_task, 2},
-  {"Rcreate_voltage_chan", (DL_FUNC) &Rcreate_voltage_chan, 8},
-  {"Rconfig_sampl_clk_timing",(DL_FUNC)  &Rconfig_sampl_clk_timing, 6},
-  {"Ris_finished", (DL_FUNC) &Ris_finished, 1},
-  {"Rread_analog_f64", (DL_FUNC) &Rread_analog_f64, 5},
-  {"Rget_error_string", (DL_FUNC) &Rget_error_string, 1},
+  {"Rnidaq_create_task", (DL_FUNC) &Rnidaq_create_task, 1},
+  {"Rnidaq_start_task", (DL_FUNC) &Rnidaq_start_task, 1},
+  {"Rnidaq_clear_task", (DL_FUNC) &Rnidaq_clear_task, 1},
+  {"Rnidaq_stop_task", (DL_FUNC) &Rnidaq_stop_task, 1},
+  {"Rnidaq_add_global_chans_to_task", (DL_FUNC) &Rnidaq_add_global_chans_to_task, 2},
+  {"Rnidaq_create_voltage_chan", (DL_FUNC) &Rnidaq_create_voltage_chan, 8},
+  {"Rnidaq_config_sampl_clk_timing",(DL_FUNC)  &Rnidaq_config_sampl_clk_timing, 6},
+  {"Rnidaq_is_finished", (DL_FUNC) &Rnidaq_is_finished, 1},
+  {"Rnidaq_read_analog_f64", (DL_FUNC) &Rnidaq_read_analog_f64, 5},
+  {"Rnidaq_get_error_string", (DL_FUNC) &Rnidaq_get_error_string, 1},
   {NULL, NULL, 0}
 };
 
