@@ -5,7 +5,7 @@
  */
 #include <string.h>
 
-#include <NIDAQmx.h>
+#include "NIDAQmx.h"
 #include <R.h>
 #include <Rinternals.h>
 #include <Rdefines.h>

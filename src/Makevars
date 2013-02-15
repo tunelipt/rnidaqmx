@@ -1,1 +1,1 @@
-PKG_LIBS = -lNIDAQmx
+PKG_LIBS = NIDAQmx.lib
