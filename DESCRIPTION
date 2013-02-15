@@ -5,6 +5,10 @@ Title: Interface R para NIDAQmx
 Author: Paulo Jose saiz Jabardo <pjabardo@ipt.br>
 Maintainer: Paulo Jose saiz Jabardo <pjabardo@ipt.br>
 Description: Este pacote implementa uma interface para a NIDAQmx
-Depends: daq, R (>= 2.6.0)
+Depends:
+    daq,
+    R (>= 2.6.0)
 License: GPL version 2
 URL: http://www.ipt.br
+Collate:
+    'rnidaqmx.R'
