@@ -1,5 +1,11 @@
+#' @useDynLib rnidaqmx
+NULL
+
+
 
 #' Create a new NIDAQmx device.
+#'
+#' New NIDAQmx device.
 #'
 #' @param dev Device name.
 #' @param channels Integer array containing channel numbers starting in 1.
@@ -175,3 +181,5 @@ nidaqClear <- function(dev){
   .Call("Rnidaq_clear_task", task)
   
 }
+
+

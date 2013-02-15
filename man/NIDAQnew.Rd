@@ -18,6 +18,6 @@
   \item{taskname}{}
 }
 \description{
-  Create a new NIDAQmx device.
+  New NIDAQmx device.
 }
 
